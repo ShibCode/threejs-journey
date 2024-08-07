@@ -30,7 +30,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 const debugObject = {
-  materialColor: "#11e864",
+  materialColor: "#ff0000",
 };
 const cubeTweaks = gui.addFolder("Awesome Cube");
 
@@ -53,16 +53,65 @@ const canvas = document.querySelector("canvas.webgl");
 
 const scene = new THREE.Scene();
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
+const loadingManager = new THREE.LoadingManager();
 
-const mesh = new THREE.Mesh(
-  geometry,
-  new THREE.MeshBasicMaterial({
-    color: debugObject.materialColor,
-    wireframe: true,
-  })
+loadingManager.onError = () => {
+  console.log("error");
+};
+
+const textureLoader = new THREE.TextureLoader(loadingManager);
+
+const textureNormal = textureLoader.load(
+  "/leather-padded/Leather_Padded_002_normal.png"
 );
+// const textureAmbient = textureLoader.load(
+//   "/leather-padded/Leather_Padded_002_ambientOcclusion.png"
+// );
+// const textureBase = textureLoader.load(
+//   "/leather-padded/Leather_Padded_002_basecolor.png"
+// );
+// const textureHeight = textureLoader.load(
+//   "/leather-padded/Leather_Padded_002_height.png"
+// );
+// const textureRoughness = textureLoader.load(
+//   "/leather-padded/Leather_Padded_002_roughness.png"
+// );
+// const textureMetallic = textureLoader.load(
+//   "/leather-padded/Leather_Padded_002_metallic.png"
+// );
+
+const textures = [
+  textureNormal,
+  // textureAmbient,
+  // textureBase,
+  // textureHeight,
+  // textureRoughness,
+  // textureMetallic,
+];
+
+textures.forEach((texture) => {
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.repeat.x = 1;
+  texture.repeat.y = 1;
+
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+});
+
+let i = 0;
+
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+const material = new THREE.MeshBasicMaterial({ map: textures[i] });
+
+const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
+
+window.addEventListener("dblclick", () => {
+  if (i >= textures.length - 1) i = 0;
+  else i++;
+  mesh.material.dispose();
+  mesh.material = new THREE.MeshBasicMaterial({ map: textures[i] });
+});
 
 cubeTweaks.add(mesh.position, "y").min(-3).max(3).step(0.01);
 cubeTweaks.add(mesh, "visible");
@@ -79,30 +128,30 @@ cubeTweaks.add(debugObject, "spin");
 
 debugObject.subdivision = 2;
 
-cubeTweaks
-  .add(debugObject, "subdivision")
-  .min(1)
-  .max(200)
-  .step(1)
-  .onChange(() => {
-    mesh.geometry.dispose();
+// cubeTweaks
+//   .add(debugObject, "subdivision")
+//   .min(1)
+//   .max(200)
+//   .step(1)
+//   .onChange(() => {
+//     mesh.geometry.dispose();
 
-    const newGeometry = new THREE.BoxGeometry(
-      1,
-      1,
-      1,
-      debugObject.subdivision,
-      debugObject.subdivision,
-      debugObject.subdivision
-    );
-    mesh.geometry = newGeometry;
-  });
+//     const newGeometry = new THREE.BoxGeometry(
+//       1,
+//       1,
+//       1,
+//       debugObject.subdivision,
+//       debugObject.subdivision,
+//       debugObject.subdivision
+//     );
+//     mesh.geometry = newGeometry;
+//   });
 
 const aspectRatio = sizes.width / sizes.height;
 
 const camera = new THREE.PerspectiveCamera(75, aspectRatio);
 scene.add(camera);
-camera.position.set(0, 0, 3);
+camera.position.set(0, 0, 2);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -118,10 +167,17 @@ window.addEventListener("mousemove", (e) => {
   cursor.y = -(e.clientY / sizes.height - 0.5);
 });
 
+const clock = new THREE.Clock();
+
+mesh.material.map.center.x = 0.5;
+mesh.material.map.center.y = 0.5;
+
 const tick = () => {
   controls.update();
 
-  renderer.render(scene, camera);
+  // mesh.material.map.rotation += 0.005;
+
+  renderer.render(camera);
   window.requestAnimationFrame(tick);
 };
 
