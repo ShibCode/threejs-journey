@@ -1,4 +1,3 @@
-import gsap from "gsap";
 import * as THREE from "three";
 import { FontLoader, TextGeometry } from "three/examples/jsm/Addons.js";
 
@@ -39,7 +38,7 @@ const fontLoader = new FontLoader();
 fontLoader.load(
   "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
   (font) => {
-    const material = new THREE.MeshBasicMaterial();
+    const material = new THREE.MeshMatcapMaterial();
     material.map = matcap;
 
     const textGeometry = new TextGeometry("Hello ThreeJS", {
@@ -88,9 +87,6 @@ fontLoader.load(
       cameraPosition.x = x * 10;
       cameraPosition.y = -y * 6;
       cameraPosition.z = 4 - Math.max(Math.abs(x), Math.abs(y)) * 2;
-
-      //   camera.position.z = 3 - Math.abs(y) * 1.5;
-      //   camera.rotation.x = y * Math.PI * 0.5;
     });
 
     const tick = () => {
@@ -100,7 +96,6 @@ fontLoader.load(
 
       camera.lookAt(0, 0, 0);
 
-      //   controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     };
